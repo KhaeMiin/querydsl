@@ -31,7 +31,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	//querydsl 추가
 	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"\
+
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8' //query에서 ?에 대한 값 확인 가능
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
