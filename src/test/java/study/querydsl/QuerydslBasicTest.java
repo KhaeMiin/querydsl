@@ -14,6 +14,7 @@ import study.querydsl.entity.Team;
 import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.*;
+import static study.querydsl.entity.QMember.*;
 
 @SpringBootTest
 @Transactional
@@ -58,13 +59,37 @@ public class QuerydslBasicTest {
 
     @Test
     void startQuerydsl() {
-        QMember m = new QMember("m"); //"m" : 별칭같은거 (크게 중요하지 않음) > 나중에 안쓴다.
+//        QMember m = new QMember("m"); //"m" : 별칭같은거 (크게 중요하지 않음) > 나중에 안쓴다.
+//        QMember m = QMember.member;
 
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1")) //오류시 컴파일시점에 발생 (컴파일 에러 좋아용)
+                .select(member) //QMember.member에서 QMember static import > 이 사용법 권장
+                .from(member)
+                .where(member.username.eq("member1")) //오류시 컴파일시점에 발생 (컴파일 에러 좋아용)
                 .fetchOne();
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    //검색 조건 쿼리
+    @Test
+    public void search() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10)))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+    @Test
+    public void searchAndParam() {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1"),
+                        (member.age.eq(10))) //쉼표 ','로 and 대신으로 사용이 가능하다.
+                .fetchOne();
+
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
