@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,8 @@ import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
@@ -88,9 +91,69 @@ public class QuerydslBasicTest {
                 .where(
                         member.username.eq("member1"),
                         (member.age.eq(10))) //쉼표 ','로 and 대신으로 사용이 가능하다.
-                .fetchOne();
+                .fetchOne(); //결과 단건 조회(결과 없으면 null, 둘 이상이면 에러발생)
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    void resultFetch() {
+//        List<Member> fetch = queryFactory
+//                .selectFrom(member)
+//                .fetch();
+//
+//        Member fetchOne = queryFactory
+//                .selectFrom(member)
+//                .fetchOne();
+//
+//        Member fetchFirst = queryFactory
+//                .selectFrom(member)
+//                .fetchFirst();
+
+//        QueryResults<Member> results = queryFactory
+//                .selectFrom(member)
+//                .fetchResults();
+//        results.getTotal();
+//        List<Member> count = results.getResults();
+
+        queryFactory
+                .selectFrom(member)
+                .fetchCount();
+    }
+
+    /**
+     * Querydsl 검색 조건 (jpql이 제공하는 모든 검색 조건 제공)
+     */
+    @Test
+    void resultTest() {
+        Member findUsername = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member2"))
+                .fetchOne();
+        List<Member> findUsernames = queryFactory
+                .selectFrom(member)
+                .where(member.username.ne("member1")) //username != 'member1'
+                .fetch();
+        List<Member> findNotEmpty = queryFactory
+                .selectFrom(member)
+                .where(member.username.isNotEmpty()) //empty, NotNull 등 사용 가능
+                .fetch();
+        List<Member> findGoe = queryFactory
+                .selectFrom(member)
+                .where(member.age.goe(30)) // age >= 30
+                .fetch();
+        List<Member> findGt = queryFactory
+                .selectFrom(member)
+                .where(member.age.gt(30)) // age > 30
+                .fetch();
+        List<Member> findLoe = queryFactory
+                .selectFrom(member)
+                .where(member.age.loe(30)) // age <= 30
+                .fetch();
+        List<Member> findLt = queryFactory
+                .selectFrom(member)
+                .where(member.age.lt(30)) //age < 30
+                .fetch();
     }
 
 }
