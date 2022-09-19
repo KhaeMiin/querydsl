@@ -15,6 +15,8 @@ import study.querydsl.entity.QTeam;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
 import java.util.List;
 
@@ -345,6 +347,39 @@ public class QuerydslBasicTest {
         for (Tuple tuple : result) {
             System.out.println("tuple = " + tuple);
         }
+    }
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+    /**
+     * 패치 조인
+     */
+    @Test
+    void fetchJoinNo() {
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")) //team은 아직 초기화 전
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());// 이미 초기화가 된 entity인지 안된 entity인지 알 수 있다.
+        assertThat(loaded).as("페치 조인 미적용").isFalse();
+    }
+    @Test
+    void fetchJoinUse() {
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());// 이미 초기화가 된 entity인지 안된 entity인지 알 수 있다.
+        assertThat(loaded).as("페치 조인 미적용").isTrue();
     }
 
 }
