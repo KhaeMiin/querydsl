@@ -13,9 +13,11 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -711,15 +713,76 @@ public class QuerydslBasicTest {
     }
 
     private BooleanExpression usernameEq(String usernameCond) {
-        return usernameCond != null ? member.username.eq(usernameCond) : null;
+        return usernameCond != null ? member.username.eq(usernameCond) : null; //null체크 필수
     }
 
     private BooleanExpression ageEq(Integer ageCond) {
-        return ageCond != null ? member.age.eq(ageCond) : null;
+        return ageCond != null ? member.age.eq(ageCond) : null; //null체크 필수
     }
 
 
     private BooleanExpression allEq(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
+
+    /**
+     * 수정, 삭제 벌크 연산
+     */
+    @Test
+    void bulkUpdate() {
+
+        //member1 = 10 > 비회원
+        //member2 = 20 > 비회원
+        //member3 = 30 > 유지
+        //member4 = 40 > 유지
+
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        //주의: 현재 위에 벌크연산 쿼리를 날린다고 해도 현재 영속성 컨텍스트에는 수정된 값이 변경되지 않음
+
+        //아래와 같은 쿼리를 실행하면 영속성 컨텍스트가 존재하기 때문에 디비에서 값을 가져오지 않고 영속성컨텍스트에서 값을 가져온다.
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member1 : result) {
+//            System.out.println("member1 = " + member1); //디비값을 버리고 수정되지 않은 영속성 컨텍스트 값을 가져오는 것을 볼 수 있다.
+
+        }
+
+        //해결방법 영속성 애들 다 준영속으로 만들깅~
+        em.flush();
+        em.clear();
+
+        List<Member> result2 = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member2 : result2) {
+            System.out.println("member2 = " + member2); //디비값을 버리고 수정되지 않은 영속성 컨텍스트 값을 가져오는 것을 볼 수 있다.
+
+        }
+    }
+
+    @Test
+    void bulkAdd() {
+        long count = queryFactory
+                .update(member)
+//                .set(member.age, member.age.add(1))
+                .set(member.age, member.age.multiply(2))
+                .execute();
+    }
+
+    @Test
+    @DisplayName("delete")
+    void bulkDelete() {
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18)) //18이상
+                .execute();
     }
 }
