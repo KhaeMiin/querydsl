@@ -785,4 +785,39 @@ public class QuerydslBasicTest {
                 .where(member.age.gt(18)) //18이상
                 .execute();
     }
+
+    /**
+     * SQL function 호출
+     *  > sql에서도 사용자 정의 함수를 만들 수 있다..! (새로운 사실)
+     *  https://wakestand.tistory.com/503 function 만들기 참고 블로그
+     *
+     *  SQL function 사용 > 오타났을 경우 찾기가 힘드네 (내 생각)
+     */
+    @Test
+    void sqlFunction() {
+        List<String> result = queryFactory
+                .select(Expressions.stringTemplate("function('replace', {0}, {1}, {2})",
+                        member.username, "member", "M")) //username에서 'member'라는 단어를 'M'으로 바꾼다
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    void sqlFunction2() {
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+//                .where(member.username.eq(
+//                        Expressions.stringTemplate("function('lower', {0})", member.username))) // 소문자일 경우 출력~
+                .where(member.username.eq(member.username.lower())) //이 방법이 더 보기도 쉽고!!!편하다!!
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
 }
