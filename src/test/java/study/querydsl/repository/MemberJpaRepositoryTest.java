@@ -70,5 +70,32 @@ class MemberJpaRepositoryTest {
 
         assertThat(result).extracting("username").containsExactly("member3", "member4");
     }
+    @Test
+    void searchTest2() {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 20, teamA);
+
+        Member member3 = new Member("member3", 30, teamB);
+        Member member4 = new Member("member4", 40, teamB);
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
+        em.persist(member4);
+
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setAgeGoe(20); //35 같거나 이상인 것들
+        condition.setAgeLoe(40); //40 같거나 이하인 것들
+        condition.setTeamName("teamB"); // teamB인 것들
+        //조건이 없을 경우 데이터를 다 끌고옴 (그래서 기본 조건이 있는 것이 좋음, 또는 페이징 쿼리)
+
+        List<MemberTeamDto> result = memberJpaRepository.search(condition);
+
+        assertThat(result).extracting("username").containsExactly("member3", "member4");
+    }
 
 }
