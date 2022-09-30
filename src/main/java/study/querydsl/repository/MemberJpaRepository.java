@@ -2,6 +2,7 @@ package study.querydsl.repository;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -122,8 +123,25 @@ public class MemberJpaRepository {
                         ageLoe(condition.getAgeLoe()))
                 .fetch();
     }
+    //DTO말고 Entity로도 조회가 가능하다 (메소드를 제사용 할 수 있음)
+    public List<Member> searchMember(MemberSearchCondition condition) {
+        return queryFactory
+                .selectFrom(member)
+                .from(member)
+                .leftJoin(member.team, team) //QTeam.team > static import
+                .where(
+                        usernameEq(condition.getUsername()),
+                        teamNameEq(condition.getTeamName()),
+                        ageBetween(condition.getAgeLoe(), condition.getAgeGoe()) //이렇게 함수 조립도 가능!! (위에 usernameEq, teamNameEq역시 다 묶어서 한번에 가능) > null체크만 조심하자!
+                )
+                .fetch();
+    }
 
-    private Predicate usernameEq(String username) {
+    private BooleanExpression ageBetween(int ageLoe, int ageGoe) { //함수 조립하깅
+        return ageGoe(ageLoe).and(ageGoe(ageLoe));
+    }
+
+    private BooleanExpression usernameEq(String username) {
         return hasText(username) ? member.username.eq(username) : null; //값이 있으면 비교해서 값 반환, 없으면 null반환
     }
 
@@ -131,12 +149,12 @@ public class MemberJpaRepository {
         return hasText(teamName) ? team.name.eq(teamName) : null ;
     }
 
-    private Predicate ageGoe(Integer ageGoe) {
+    private BooleanExpression ageGoe(Integer ageGoe) {
         return ageGoe != null ? member.age.goe(ageGoe) : null;
 
     }
 
-    private Predicate ageLoe(Integer ageLoe) {
+    private BooleanExpression ageLoe(Integer ageLoe) {
         return ageLoe != null ? member.age.loe(ageLoe) : null;
     }
 

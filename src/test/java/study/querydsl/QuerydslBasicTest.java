@@ -722,6 +722,7 @@ public class QuerydslBasicTest {
 
 
     private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+        usernameEq()
         return usernameEq(usernameCond).and(ageEq(ageCond));
     }
 
